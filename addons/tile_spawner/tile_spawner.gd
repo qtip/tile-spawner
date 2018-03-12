@@ -24,7 +24,7 @@ func _ready():
 	_update_source_tilemap_field()
 	_update_target_node_field()
 
-	if not Engine.is_editor_hint():
+	if _source_tilemap != null and not Engine.is_editor_hint():
 		# At runtime, hide the source tilemap and show the new nodes so that you
 		# can leave the tilemap showing while editing rapidly
 		_source_tilemap.visible = false
@@ -47,7 +47,7 @@ func _update_source_tilemap_field():
 		return
 
 	var node = get_node(source_tilemap)
-	if not node is TileMap:
+	if node == null or not node is TileMap:
 		# Fail if the node is the wrong type
 		print("Error: Source TileMap must be a TileMap node!")
 		source_tilemap = null
