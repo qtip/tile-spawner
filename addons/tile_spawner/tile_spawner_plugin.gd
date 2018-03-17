@@ -56,7 +56,7 @@ func bake_button_pressed():
 	var tile_spawner = selected_nodes[0]
 	
 	# Do the tilemap spawning
-	spawn_from_tilemap(tile_spawner)
+	spawn_from_tilemap(get_tree(), tile_spawner)
 
 func add_tile_spawner_controls():
 	# If the tile spawner controls are already present, don't add them again
@@ -79,7 +79,7 @@ func remove_tile_spawner_controls():
 		# Free the controls
 		tile_spawner_controls.queue_free()
 
-func spawn_from_tilemap(tile_spawner):
+static func spawn_from_tilemap(tree, tile_spawner):
 	# Validate & get tilemap node
 	var source_tilemap = tile_spawner.get_source_tilemap()
 	if source_tilemap == null or not source_tilemap is TileMap:
@@ -146,7 +146,7 @@ func spawn_from_tilemap(tile_spawner):
 		print(scene_path)
 
 		# Add the child
-		var child = spawn_child(get_tree().get_edited_scene_root(), target_node, scene_path)
+		var child = spawn_child(tree.get_edited_scene_root(), target_node, scene_path)
 
 		# Transform the child to match the global transform of the tile
 		var tile_transform = source_tilemap.global_transform
@@ -163,11 +163,11 @@ func spawn_from_tilemap(tile_spawner):
 		elif tile_spawner.grid_alignment == Align.TRUNCATE:
 			child.global_position = Vector2(int(child.global_position.x), int(child.global_position.y))
 
-func clear_children(parent_node):
+static func clear_children(parent_node):
 	for child_node in parent_node.get_children():
 		child_node.free()
 
-func spawn_child(scene_root, parent, scene_path):
+static func spawn_child(scene_root, parent, scene_path):
 	var node
 	node = load(scene_path).instance()
 	node.filename = scene_path
