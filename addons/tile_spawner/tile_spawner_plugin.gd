@@ -188,6 +188,7 @@ static func get_cell_orientation_transform(tile_map, cellv):
 
 	return transform
 
+# Given a node, free all children of that node
 static func free_children(parent_node):
 	for child_node in parent_node.get_children():
 		child_node.free()
