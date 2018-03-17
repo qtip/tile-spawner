@@ -124,7 +124,7 @@ static func spawn_from_tilemap(tree, tile_spawner):
 
 	# Optionally, clear children in the target node
 	if tile_spawner.clear_children_before_baking:
-		clear_children(target_node)
+		free_children(target_node)
 
 	# For each tile, spawn a child into the target node
 	for cellv in source_tilemap.get_used_cells():
@@ -161,7 +161,7 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		elif tile_spawner.grid_alignment == Align.TRUNCATE:
 			child.global_position = Vector2(int(child.global_position.x), int(child.global_position.y))
 
-static func clear_children(parent_node):
+static func free_children(parent_node):
 	for child_node in parent_node.get_children():
 		child_node.free()
 
