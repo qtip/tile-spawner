@@ -30,6 +30,10 @@ func _ready():
 		_source_tilemap.visible = false
 		visible = true
 
+		# Spawn nodes from tilemap at runtime desired
+		if spawn_at_runtime:
+			TileSpawnerPlugin.spawn_from_tilemap(get_tree(), self)
+
 # source_tilemap helpers
 
 func get_source_tilemap():
