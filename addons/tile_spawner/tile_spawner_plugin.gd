@@ -146,20 +146,47 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		# Add the child
 		var child = spawn_child(tree.get_edited_scene_root(), target_node, scene_path)
 
-		# Transform the child to match the global transform of the tile
-		var tile_transform = source_tilemap.global_transform
-		tile_transform.origin = tile_transform.xform(source_tilemap.map_to_world(cellv) + origin_offset)
-		child.global_transform = tile_transform
+		# Find the transform for the tile
+		var orientation_transform = get_cell_orientation_transform(source_tilemap, cellv)
+		var tile_transform = source_tilemap.global_transform * orientation_transform
+
+		# Compute origin of the tile
+		var origin = source_tilemap.global_transform.xform(source_tilemap.map_to_world(cellv) + origin_offset)
+		# Snap origin to pixel grid
+		origin = snap_to_pixel_grid(origin, tile_spawner.grid_alignment)
+		tile_transform.origin = origin
 		
-		# Snap to pixels if requested
-		if tile_spawner.grid_alignment == Align.ROUND:
-			child.global_position = Vector2(round(child.global_position.x), round(child.global_position.y))
-		elif tile_spawner.grid_alignment == Align.FLOOR:
-			child.global_position = Vector2(floor(child.global_position.x), floor(child.global_position.y))
-		elif tile_spawner.grid_alignment == Align.CEIL:
-			child.global_position = Vector2(ceil(child.global_position.x), ceil(child.global_position.y))
-		elif tile_spawner.grid_alignment == Align.TRUNCATE:
-			child.global_position = Vector2(int(child.global_position.x), int(child.global_position.y))
+		# Set the transform
+		child.global_transform = tile_transform
+
+# Given a vector and an alignment type, return a new, aligned version
+# of that vector
+static func snap_to_pixel_grid(vec, align):
+	if align == Align.ROUND:
+		return Vector2(round(vec.x), round(vec.y))
+	elif align == Align.FLOOR:
+		return Vector2(floor(vec.x), floor(vec.y))
+	elif align == Align.CEIL:
+		return Vector2(ceil(vec.x), ceil(vec.y))
+	elif align == Align.TRUNCATE:
+		return Vector2(int(vec.x), int(vec.y))
+	else:
+		return vec
+
+# Given a TileMap and a cell coordinate, return a Transform that represents
+# the given rotation/mirroring etc.
+static func get_cell_orientation_transform(tile_map, cellv):
+	var transform = Transform2D(Vector2(1, 0), Vector2(0, 1), Vector2(0, 0))
+	if tile_map.is_cell_transposed(cellv.x, cellv.y):
+		var x_axis = Vector2(transform.x)
+		transform.x = -Vector2(transform.y)
+		transform.y = -x_axis
+	if tile_map.is_cell_x_flipped(cellv.x, cellv.y):
+		transform.x = -transform.x
+	if tile_map.is_cell_y_flipped(cellv.x, cellv.y):
+		transform.y = -transform.y
+
+	return transform
 
 static func free_children(parent_node):
 	for child_node in parent_node.get_children():
