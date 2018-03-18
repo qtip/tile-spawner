@@ -40,23 +40,67 @@ func _exit_tree():
 func selection_changed():
 	# When the current selection changes, check to see what's now selected
 	var selected_nodes = get_editor_interface().get_selection().get_selected_nodes()
-	if len(selected_nodes) == 1 and selected_nodes[0].is_in_group(UUID_TILE_SPAWNER):
+
+	# Only show the controls when one node is selected.
+	# Note: Perhaps this check isn't necessary
+	if selected_nodes == null or selected_nodes.size() != 1:
+		remove_tile_spawner_controls()
+		return
+
+	var related_tile_spawners = filter_related_tile_spawners(selected_nodes)
+	if related_tile_spawners.size() > 0:
 		add_tile_spawner_controls()
 	else:
 		remove_tile_spawner_controls()
 
+# Given a tile_map, find the tile_spawners that are targeting it.
+func get_source_tile_spawners(tile_map):
+	var tile_spawners = []
+	for tile_spawner in get_tree().get_nodes_in_group(UUID_TILE_SPAWNER):
+		if tile_spawner.get_source_tilemap() == tile_map:
+			tile_spawners.push_back(tile_spawner)
+	return tile_spawners
+
+# Given a list of nodes, return all related tile_spawners, either directly or
+# indirectly from the list
+func filter_related_tile_spawners(nodes):
+	var tile_spawners = []
+	for node in nodes:
+
+		# Add a node if it is a tile spawner
+		if node.is_in_group(UUID_TILE_SPAWNER):
+			tile_spawners.push_back(node)
+			continue
+
+		# Add any tile_spawners targeting this node.
+		var source_tile_spawners = get_source_tile_spawners(node)
+		tile_spawners = array_extend(tile_spawners, source_tile_spawners)
+
+	return tile_spawners
+
+static func array_extend(array1, array2):
+	for item in array2:
+		array1.push_back(item)
+	return array1
+
 func bake_button_pressed():
 	# Get all nodes selected
 	var selected_nodes = get_editor_interface().get_selection().get_selected_nodes()
-	if len(selected_nodes) != 1 or not selected_nodes[0].is_in_group(UUID_TILE_SPAWNER):
-		# Shouldn't happen, but if a TileSpawner is not selected, then abort
-		print("Warning: Tried to bake TileSpawner, but TileSpawner not selected")
+
+	# Only bake when one node is selected.
+	# Note: Perhaps this check isn't necessary
+	if selected_nodes == null or selected_nodes.size() != 1:
+		print("Error: Trying to bake with multiple nodes selected")
 		return
 
-	var tile_spawner = selected_nodes[0]
-	
+	var related_tile_spawners = filter_related_tile_spawners(selected_nodes)
+	if related_tile_spawners.size() <= 0:
+		print("Error: Trying to bake without a TileSpawner or TileMap selected")
+		return
+
 	# Do the tilemap spawning
-	spawn_from_tilemap(get_tree(), tile_spawner)
+	for tile_spawner in related_tile_spawners:
+		spawn_from_tilemap(get_tree(), tile_spawner)
 
 func add_tile_spawner_controls():
 	# If the tile spawner controls are already present, don't add them again
