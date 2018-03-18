@@ -20,7 +20,7 @@ func _enter_tree():
 
 	# Register TileSpawner node
 	add_custom_type("TileSpawner", "Node2D", preload("res://addons/tile_spawner/tile_spawner.gd"), preload("res://addons/tile_spawner/tile_spawner_icon.png"))
-	
+
 	# Register TileSpawnerMapping resource
 	# add_custom_type("TileSpawnerMapping", "Resource", preload("res://addons/tile_spawner/tile_spawner_mapping.gd"), preload("res://addons/tile_spawner/tile_spawner_mapping_icon.png"))
 
@@ -111,7 +111,7 @@ func add_tile_spawner_controls():
 	var tile_spawner_controls = TileSpawnerControls.instance()
 	tile_spawner_controls.add_to_group(UUID_TILE_SPAWNER_CONTROLS)
 	add_control_to_container(CONTAINER_CANVAS_EDITOR_MENU, tile_spawner_controls)
-	
+
 	# Listen for events from the controls so we can react to them
 	tile_spawner_controls.get_node("bake_button").connect("pressed", self, "bake_button_pressed")
 
@@ -119,7 +119,7 @@ func remove_tile_spawner_controls():
 	for tile_spawner_controls in get_tree().get_nodes_in_group(UUID_TILE_SPAWNER_CONTROLS):
 		# Remove the controls from the editor
 		remove_control_from_container(CONTAINER_CANVAS_EDITOR_MENU, tile_spawner_controls)
-		
+
 		# Free the controls
 		tile_spawner_controls.queue_free()
 
@@ -179,7 +179,7 @@ static func spawn_from_tilemap(tree, tile_spawner):
 
 		# Get the mapping entry for this tile name
 		var mapping_entry = mapping[tile_name]
-		
+
 		# Ignore tiles with no mapping
 		if mapping_entry == null:
 			continue
@@ -199,7 +199,7 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		# Snap origin to pixel grid
 		origin = snap_to_pixel_grid(origin, tile_spawner.grid_alignment)
 		tile_transform.origin = origin
-		
+
 		# Set the transform
 		child.global_transform = tile_transform
 
