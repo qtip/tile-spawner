@@ -192,12 +192,12 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		var tile_index = source_tilemap.get_cellv(cellv)
 		var tile_name = tile_set.tile_get_name(tile_index)
 
+		# Ignore tiles with no mapping
+		if not mapping.has(tile_name):
+			continue
+
 		# Get the mapping entry for this tile name
 		var mapping_entry = mapping[tile_name]
-
-		# Ignore tiles with no mapping
-		if mapping_entry == null:
-			continue
 
 		# Using the entry, find the scene path for this tile name
 		var scene_path = mapping_entry['scene']
