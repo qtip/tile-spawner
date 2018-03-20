@@ -83,6 +83,14 @@ static func array_extend(array1, array2):
 		array1.push_back(item)
 	return array1
 
+func undo_spawn(tile_spawner, old_children):
+	free_children(tile_spawner)
+	var scene_root = get_tree().get_edited_scene_root()
+	for child in old_children:
+		tile_spawner.add_child(child)
+		child.set_owner(scene_root)
+
+
 func bake_button_pressed():
 	# Get all nodes selected
 	var selected_nodes = get_editor_interface().get_selection().get_selected_nodes()
@@ -98,9 +106,16 @@ func bake_button_pressed():
 		print("Error: Trying to bake without a TileSpawner or TileMap selected")
 		return
 
+	var undo_redo = get_undo_redo()
+	undo_redo.create_action("Bake Tile Spawner")
+
 	# Do the tilemap spawning
 	for tile_spawner in related_tile_spawners:
+		undo_redo.add_undo_method(self, "undo_spawn", tile_spawner, tile_spawner.get_children())
+		undo_redo.add_do_method(self, "spawn_from_tilemap", get_tree(), tile_spawner)
 		spawn_from_tilemap(get_tree(), tile_spawner)
+	
+	undo_redo.commit_action()
 
 func add_tile_spawner_controls():
 	# If the tile spawner controls are already present, don't add them again
@@ -168,7 +183,7 @@ static func spawn_from_tilemap(tree, tile_spawner):
 
 	# Optionally, clear children in the target node
 	if tile_spawner.clear_children_before_baking:
-		free_children(target_node)
+		unparent_children(target_node)
 
 	# For each tile, spawn a child into the target node
 	for cellv in source_tilemap.get_used_cells():
@@ -236,6 +251,15 @@ static func get_cell_orientation_transform(tile_map, cellv):
 static func free_children(parent_node):
 	for child_node in parent_node.get_children():
 		child_node.free()
+
+# Given a node, detach but do not free all children of that node
+static func unparent_children(parent_node):
+	var nodes = []
+	for child_node in parent_node.get_children():
+		parent_node.remove_child(child_node)
+		child_node.set_owner(null)
+		nodes.push_back(child_node)
+	return nodes
 
 static func spawn_child(scene_root, parent, scene_path):
 	var node
