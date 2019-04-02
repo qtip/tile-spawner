@@ -19,7 +19,7 @@ func _enter_tree():
 	var selection = get_editor_interface().get_selection().connect("selection_changed", self, "selection_changed")
 
 	# Register TileSpawner node
-	add_custom_type("TileSpawner", "Node2D", preload("res://addons/tile_spawner/tile_spawner.gd"), preload("res://addons/tile_spawner/tile_spawner_icon.png"))
+	add_custom_type("TileSpawner", "Node2D", load("res://addons/tile_spawner/tile_spawner.gd"), load("res://addons/tile_spawner/tile_spawner_icon.png"))
 
 	# Register TileSpawnerMapping resource
 	# add_custom_type("TileSpawnerMapping", "Resource", preload("res://addons/tile_spawner/tile_spawner_mapping.gd"), preload("res://addons/tile_spawner/tile_spawner_mapping_icon.png"))
