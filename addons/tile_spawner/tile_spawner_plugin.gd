@@ -238,7 +238,7 @@ static func get_cell_orientation_transform(tile_map, cellv):
 	var transform = Transform2D(Vector2(1, 0), Vector2(0, 1), Vector2(0, 0))
 	if tile_map.is_cell_transposed(cellv.x, cellv.y):
 		var x_axis = Vector2(transform.x.x, transform.x.y)
-		transform.x = -Vector2(transform.y.x, transform.y.x)
+		transform.x = -Vector2(transform.y.x, transform.y.y)
 		transform.y = -x_axis
 	if tile_map.is_cell_x_flipped(cellv.x, cellv.y):
 		transform.x = -transform.x
