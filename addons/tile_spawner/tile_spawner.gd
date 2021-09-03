@@ -4,11 +4,13 @@ extends Node2D
 const TileSpawnerPlugin = preload("./tile_spawner_plugin.gd")
 
 export(NodePath) var source_tilemap = null setget set_source_tilemap_path
-export(String, FILE, "*.json") var mapping
 export(bool) var clear_children_before_baking = true
 export(bool) var spawn_at_runtime = false
 export(NodePath) var target_node = "." setget set_target_node_path
 export(int, "None", "Round", "Floor", "Ceiling", "Truncate") var grid_alignment = TileSpawnerPlugin.Align.NONE
+
+export (Array, String) var tile_names
+export (Array, PackedScene) var scenes
 
 var _source_tilemap = null
 var _target_node = null
