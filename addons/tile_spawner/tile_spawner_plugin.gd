@@ -98,12 +98,12 @@ func bake_button_pressed():
 	# Only bake when one node is selected.
 	# Note: Perhaps this check isn't necessary
 	if selected_nodes == null or selected_nodes.size() != 1:
-		print("Error: Trying to bake with multiple nodes selected")
+		push_error("TileSpawner: Trying to bake with multiple nodes selected")
 		return
 
 	var related_tile_spawners = filter_related_tile_spawners(selected_nodes)
 	if related_tile_spawners.size() <= 0:
-		print("Error: Trying to bake without a TileSpawner or TileMap selected")
+		push_error("TileSpawner: Trying to bake without a TileSpawner or TileMap selected")
 		return
 
 	var undo_redo = get_undo_redo()
@@ -143,34 +143,27 @@ static func spawn_from_tilemap(tree, tile_spawner):
 	var source_tilemap = tile_spawner.get_source_tilemap()
 	if source_tilemap == null or not source_tilemap is TileMap:
 		# Ensure the node select for source tilemap is correct
-		print("Error: Source tilemap must be a TileMap!")
+		push_error("TileSpawner: Source tilemap must be a TileMap!")
 		return
 
 	# Validate & get target node
 	var target_node = tile_spawner.get_target_node()
 	if target_node == null or not target_node is CanvasItem:
 		# Ensure the node select for source tilemap is correct
-		print("Error: Target node must be a CanvasItem!")
+		push_error("TileSpawner: Target node must be a CanvasItem!")
 		return
 
 	# Validate & get the mapping
-	var mapping_path = tile_spawner.mapping
-	var mapping_file = File.new()
-	if mapping_path == null or not mapping_file.file_exists(mapping_path):
-		# Make sure the mapping file exists
-		print("Error: Mapping file for TileSpawner does not exist!")
+	var tile_names = tile_spawner.tile_names
+	var scenes = tile_spawner.scenes
+	if len(tile_names) != len(scenes):
+		push_error("TileSpawner: You must set an equal number of Tile Names and Scene Paths entries in the Mapping inspector option")
 		return
-	if mapping_file.open(tile_spawner.mapping, File.READ) != OK:
-		# Make sure the mapping file opened
-		print("Error: Could not open the mapping file for TileSpawner!")
-		return
-	var mapping_json = JSON.parse(mapping_file.get_as_text())
-	mapping_file.close()
-	if typeof(mapping_json.result) != TYPE_DICTIONARY:
-		# Make sure the mapping file is formatted correctly
-		print("Error: Mapping file for TileSpawner must be a JSON object!")
-		return
-	var mapping = mapping_json.result
+	var mapping = {}
+	var i = 0
+	for tile_name in tile_spawner.tile_names:
+		mapping[tile_name] = {"scene": scenes[i]}
+		i += 1
 
 	# Using the tilemap's cell_tile_origin, find an offset for each node
 	var origin_offset = Vector2()
@@ -200,10 +193,10 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		var mapping_entry = mapping[tile_name]
 
 		# Using the entry, find the scene path for this tile name
-		var scene_path = mapping_entry['scene']
+		var scene = mapping_entry['scene']
 
 		# Add the child
-		var child = spawn_child(tree.get_edited_scene_root(), target_node, scene_path)
+		var child = spawn_child(tree.get_edited_scene_root(), target_node, scene)
 
 		# Find the transform for the tile
 		var orientation_transform = get_cell_orientation_transform(source_tilemap, cellv)
@@ -215,8 +208,8 @@ static func spawn_from_tilemap(tree, tile_spawner):
 		origin = snap_to_pixel_grid(origin, tile_spawner.grid_alignment)
 		tile_transform.origin = origin
 
-		# Set the transform
-		child.global_transform = tile_transform
+		# Set the position
+		child.global_transform.origin = tile_transform.origin
 
 # Given a vector and an alignment type, return a new, aligned version
 # of that vector
@@ -261,10 +254,10 @@ static func unparent_children(parent_node):
 		nodes.push_back(child_node)
 	return nodes
 
-static func spawn_child(scene_root, parent, scene_path):
+static func spawn_child(scene_root, parent, scene):
 	var node
-	node = load(scene_path).instance()
-	node.filename = scene_path
+	node = scene.instance()
+	node.filename = scene.resource_name
 	parent.add_child(node)
 	node.position = Vector2(0,0)
 	node.set_owner(scene_root)
